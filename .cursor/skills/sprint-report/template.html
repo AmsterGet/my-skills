@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "{{REPORT_NAME}}",
+  "schemaVersion": 1,
+  "description": "{{REPORT_DESCRIPTION}}"
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{PAGE_TITLE}}</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+  :root {
+    color-scheme: light;
+    --teal: #2f8ba3;
+    --teal-dark: #1f6b80;
+    --teal-light: #e7f3f6;
+    --orange: #d9743a;
+    --green: #4c9a5f;
+    --red: #c0392b;
+    --amber: #d4a017;
+    --gray: #8a94a3;
+    --ink: #223142;
+    --ink-soft: #55606e;
+    --line: #e3e8ee;
+    --bg-card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #f4f7f9;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 24px 60px; }
+ 
+  .hero {
+    background: linear-gradient(135deg, var(--teal-dark), var(--teal));
+    border-radius: 16px;
+    padding: 28px 32px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .hero h1 { margin: 0 0 6px; font-size: 26px; font-weight: 700; }
+  .hero .sub { opacity: .9; font-size: 14px; }
+  .hero .badge {
+    background: rgba(255,255,255,.16);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+ 
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .kpi {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 14px;
+    text-align: center;
+  }
+  .kpi .num { font-size: 26px; font-weight: 800; color: var(--teal-dark); line-height: 1.1; }
+  .kpi .lbl { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+  .kpi.good .num { color: var(--green); }
+  .kpi.warn .num { color: var(--amber); }
+  .kpi.bad .num { color: var(--red); }
+ 
+  .section { margin-bottom: 26px; }
+  .section h2 {
+    font-size: 16px;
+    color: var(--ink);
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section h2::before {
+    content: "";
+    width: 4px; height: 16px;
+    background: var(--teal);
+    border-radius: 2px;
+    display: inline-block;
+  }
+ 
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+ 
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+ 
+  .chart-box { height: 240px; position: relative; }
+  .chart-box.tall { height: 280px; }
+  .chart-title { font-size: 13px; font-weight: 700; color: var(--ink-soft); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .03em; }
+ 
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; color: var(--ink-soft); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .02em; padding: 8px 10px; border-bottom: 2px solid var(--line); }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+  .pill.done { background: #e5f4e8; color: var(--green); }
+  .pill.progress { background: #fdeee3; color: var(--orange); }
+  .pill.open { background: #fdeaea; color: var(--red); }
+  .pill.crit { background: #fdeaea; color: var(--red); }
+  .key { color: var(--teal-dark); font-weight: 700; font-size: 12.5px; white-space: nowrap; }
+ 
+  .goal-table td:first-child, .goal-table th:first-child { width: 26%; }
+  .goal-table td:nth-child(2), .goal-table th:nth-child(2) { width: 12%; }
+  .goal-table td:last-child, .goal-table th:last-child { width: 9%; text-align: center; }
+ 
+  .note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+  .footer { margin-top: 30px; font-size: 12px; color: var(--gray); text-align: center; line-height: 1.6; }
+  .footer code { background: #eef1f4; padding: 1px 6px; border-radius: 4px; }
+ 
+  .callout {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--teal-light); border: 1px solid #cfe6ec; border-radius: 12px; padding: 14px 18px;
+    font-size: 13.5px; color: var(--ink); line-height: 1.55;
+  }
+ 
+  @media (max-width: 900px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+ 
+  <div class="hero">
+<div>
+<h1>{{HERO_TITLE}}</h1>
+<div class="sub">{{HERO_SUB}}</div>
+</div>
+<div class="badge">{{BADGE}}</div>
+</div>
+ 
+  <div class="kpi-grid">
+<div class="kpi {{KPI1_CLASS}}"><div class="num">{{KPI1_NUM}}</div><div class="lbl">{{KPI1_LBL}}</div></div>
+<div class="kpi {{KPI2_CLASS}}"><div class="num">{{KPI2_NUM}}</div><div class="lbl">{{KPI2_LBL}}</div></div>
+<div class="kpi"><div class="num">{{KPI3_NUM}}</div><div class="lbl">Defect / User Story / Spike</div></div>
+</div>
+ 
+  <div class="section">
+<h2>Velocity — last 5 sprints</h2>
+<div class="card">
+<div class="chart-title">Completed story points per sprint</div>
+<div class="chart-box tall"><canvas id="chartVelocity"></canvas></div>
+<div class="note" style="margin-top:8px;">{{VELOCITY_NOTE}}</div>
+</div>
+</div>
+ 
+  <div class="section">
+<h2>Sprint Goals &amp; Outcomes</h2>
+<div class="card">
+<table class="goal-table">
+<tr><th>Goal</th><th>Result</th><th>Comment</th><th>Issues</th></tr>
+{{GOAL_ROWS}}
+</table>
+<div class="note" style="margin-top:10px;">{{GOAL_NOTE}}</div>
+</div>
+</div>
+ 
+  <div class="section">
+<h2>Sprint Breakdown</h2>
+<div class="grid-2">
+<div class="card">
+<div class="chart-title">Status at sprint end</div>
+<div class="chart-box"><canvas id="chartStatus"></canvas></div>
+</div>
+<div class="card">
+<div class="chart-title">Effort by focus area (issue count)</div>
+<div class="chart-box"><canvas id="chartFocus"></canvas></div>
+</div>
+</div>
+<div class="note" style="margin-top:8px;">{{STATUS_NOTE}}</div>
+</div>
+ 
+  <div class="section">
+<h2>Quality: Defects</h2>
+<div class="card">
+{{DEFECT_BLOCK}}
+<div class="callout" style="margin-top:14px;">
+<div>{{CALLOUT_ICON}}</div>
+<div>{{CALLOUT_TEXT}}</div>
+</div>
+</div>
+</div>
+ 
+  <div class="section">
+<h2>Key Takeaways</h2>
+<div class="card">
+<ul style="margin:0; padding-left:20px; font-size:13.5px; line-height:1.7; color:var(--ink);">
+{{TAKEAWAY_ITEMS}}
+</ul>
+</div>
+</div>
+ 
+  <div class="footer">
+    {{FOOTER_HTML}}
+</div>
+</div>
+ 
+<script>
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#55606e';
+ 
+const palette = {
+  teal: '#2f8ba3', tealDark: '#1f6b80', tealLight: '#7fc4d6',
+  orange: '#d9743a', green: '#4c9a5f', red: '#c0392b', amber: '#d4a017', gray: '#8a94a3', blue: '#3a5bb8'
+};
+ 
+new Chart(document.getElementById('chartVelocity'), {
+  type: 'bar',
+  data: {
+    labels: {{VELOCITY_LABELS_JSON}},
+    datasets: [{ label: 'Completed story points', data: {{VELOCITY_DATA_JSON}}, backgroundColor: palette.teal, borderRadius: 6, maxBarThickness: 70 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } }
+  }
+});
+ 
+new Chart(document.getElementById('chartStatus'), {
+  type: 'doughnut',
+  data: {
+    labels: {{STATUS_LABELS_JSON}},
+    datasets: [{ data: {{STATUS_DATA_JSON}}, backgroundColor: {{STATUS_COLORS_JSON}}, borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10 } } } }
+});
+ 
+new Chart(document.getElementById('chartFocus'), {
+  type: 'bar',
+  data: {
+    labels: {{FOCUS_LABELS_JSON}},
+    datasets: [{ label: 'Issues', data: {{FOCUS_DATA_JSON}}, backgroundColor: palette.teal, borderRadius: 5 }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { beginAtZero: true } }
+  }
+});
+</script>
+</body>
+</html>
