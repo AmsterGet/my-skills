@@ -66,7 +66,9 @@ For each number `N-4` … `N-1`, build the exact name by replacing the number in
 
 ### 2. Load sprint issues
 
-`jira_get_sprint_issues` with `fields=summary,status,assignee,issuetype,priority,labels` and `limit=50`. Page with `start_at` until the collected count equals `total` from the response. Keep every key, then drop Sub-tasks before any count. The page `total` includes them and is not the report total.
+`jira_get_sprint_issues` with `fields=summary,status,assignee,issue_type,priority,labels` and `limit=50`. Page with `start_at` until the collected count equals `total` from the response. Keep every key, then drop Sub-tasks before any count. The page `total` includes them and is not the report total.
+
+The type is `issue_type.name` (`Defect`, `Spike`, `User Story`, `Task`, `Sub-task`). Requesting `issuetype` returns nothing: the MCP renames that field and then drops it. Do not run another JQL query just to recover types. In JQL the clause name stays `issuetype`.
 
 ### 3. Velocity
 
@@ -84,7 +86,7 @@ sprint = {id} AND statusCategory = Done AND issuetype != Sub-task
 
 **Done** — `status.statusCategory.key` is `done` (or category name `Done`). Anything else is not done.
 
-**Core set** — `issuetype` is exactly `Defect`, `Spike`, or `User Story`.
+**Core set** — `issue_type.name` is exactly `Defect`, `Spike`, or `User Story`.
 
 | Figure | Rule |
 |---|---|
